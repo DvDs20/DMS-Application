@@ -1,11 +1,15 @@
 package com.dms.dmsapplication.rooms.controller;
 
+import com.dms.dmsapplication.exception.ResourceNotFoundException;
 import com.dms.dmsapplication.rooms.models.Room;
 import com.dms.dmsapplication.rooms.repository.RoomRepository;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.CrossOrigin;
+import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -33,5 +37,14 @@ public class RoomController {
     @PreAuthorize("hasRole('ADMIN')")
     public Room addRoom(@RequestBody Room room) {
         return roomRepository.save(room);
+    }
+
+    @DeleteMapping("rooms/{id}")
+    @PreAuthorize("hasRole('ADMIN')")
+    public ResponseEntity<?> deleteRoom(@PathVariable(value = "id") long roomId) throws ResourceNotFoundException {
+        roomRepository.findById(roomId)
+                .orElseThrow(() -> new ResourceNotFoundException("Room not found with " + roomId));
+        roomRepository.deleteById(roomId);
+        return ResponseEntity.ok().build();
     }
 }
