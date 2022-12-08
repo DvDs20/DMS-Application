@@ -1,5 +1,6 @@
 package com.dms.dmsapplication.security.services;
 
+import com.dms.dmsapplication.exception.ResourceNotFoundException;
 import com.dms.dmsapplication.models.ERole;
 import com.dms.dmsapplication.models.Role;
 import com.dms.dmsapplication.models.User;
@@ -36,5 +37,19 @@ public class UserDetailsServiceImpl implements UserDetailsService {
         roles.add(new Role(1, ERole.ROLE_STUDENT));
         return userRepository.findAllByRolesIsIn(roles);
     }
+
+    public User getUserDetailsByUserId(Long userId) {
+        User user = userRepository.findById(userId)
+                .orElseThrow(() -> new ResourceNotFoundException("User Not Found with id: " + userId));
+
+        return user;
+    }
+
+//    public UserDetailsImpl updateUserDetailsByUserId(Long userId, UserDetailsImpl userDetails) {
+//        User user = userRepository.findById(userId)
+//                .orElseThrow(() -> new ResourceNotFoundException("User not found with id:" + userId));
+//
+//        user.se
+//    }
 
 }

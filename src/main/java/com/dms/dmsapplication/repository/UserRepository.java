@@ -11,6 +11,7 @@ import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.stereotype.Repository;
 
+import javax.validation.constraints.NotNull;
 
 @Repository
 public interface UserRepository extends JpaRepository<User, Long> {
@@ -22,5 +23,5 @@ public interface UserRepository extends JpaRepository<User, Long> {
 
     List<User> findAllByRolesIsIn(Set<Role> roles);
 
-//    List<User> findUsersByRolesContainsIgnoreCaseOrderByIdAsc(Set<Role> roles);
+    Optional<User> findById(Long userId);
 }
