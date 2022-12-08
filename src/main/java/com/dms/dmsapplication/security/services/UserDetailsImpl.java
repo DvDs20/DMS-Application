@@ -11,6 +11,7 @@ import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.userdetails.UserDetails;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
+import org.springframework.security.crypto.password.PasswordEncoder;
 
 public class UserDetailsImpl implements UserDetails {
     private static final long serialVersionUID = 1L;
@@ -27,7 +28,6 @@ public class UserDetailsImpl implements UserDetails {
 
     private String number;
 
-    @JsonIgnore
     private String password;
 
     private String academicGroup;
@@ -35,6 +35,8 @@ public class UserDetailsImpl implements UserDetails {
     private Integer userStatus;
 
     private Collection<? extends GrantedAuthority> authorities;
+
+
 
     public UserDetailsImpl(Long id, String username, String email, String firstName, String lastName,
             String number, String password, String academicGroup, Integer userStatus, Collection<?
