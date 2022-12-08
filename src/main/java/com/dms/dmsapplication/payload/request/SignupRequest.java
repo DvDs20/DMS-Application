@@ -32,6 +32,12 @@ public class SignupRequest {
     @Size(min = 9, max = 12)
     private String number;
 
+    @NotBlank
+    @Size(max = 5)
+    private String academicGroup;
+
+    private Integer userStatus;
+
 
     public String getUsername() {
         return username;
@@ -79,6 +85,22 @@ public class SignupRequest {
 
     public void setPassword(String password) {
         this.password = password;
+    }
+
+    public String getAcademicGroup() {
+        return academicGroup;
+    }
+
+    public void setAcademicGroup(String academicGroup) {
+        this.academicGroup = academicGroup;
+    }
+
+    public Integer getUserStatus() {
+        return userStatus;
+    }
+
+    public void setUserStatus(Integer userStatus) {
+        this.userStatus = userStatus;
     }
 
     public Set<String> getRole() {
