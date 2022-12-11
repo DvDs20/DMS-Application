@@ -28,4 +28,15 @@ public class UserRoomsService {
                             .map(UserRooms::getUserId).findFirst();
     }
 
+    public void saveRoomIdAndUserIds(Long userId, Long roomId) {
+        UserRooms userRooms = new UserRooms();
+
+        userRooms.setUserId(userId);
+        userRooms.setRoomId(roomId);
+
+        userRoomRepository.save(userRooms);
+    }
+
+
+
 }
