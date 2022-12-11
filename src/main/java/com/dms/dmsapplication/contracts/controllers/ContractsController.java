@@ -1,14 +1,20 @@
 package com.dms.dmsapplication.contracts.controllers;
 
 import com.dms.dmsapplication.contracts.models.Contract;
+import com.dms.dmsapplication.contracts.payload.request.NewContractCreationRequest;
 import com.dms.dmsapplication.contracts.services.ContractsService;
+import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.CrossOrigin;
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
+import java.sql.Date;
 import java.util.List;
+import javax.validation.Valid;
 
 @CrossOrigin(origins = "*", maxAge = 3600)
 @RestController
@@ -25,6 +31,13 @@ public class ContractsController {
     @PreAuthorize("hasRole('ADMIN')")
     public List<Contract> getAllContracts() {
         return contractsService.getAllContracts();
+    }
+
+    @PostMapping("/contracts")
+    @PreAuthorize("hasRole('ADMIN')")
+    public ResponseEntity<?> createNewContract(@RequestBody NewContractCreationRequest request) {
+        contractsService.createNewContract(request.getStudentId(), request.getRoomId(), request.getExpireDate());
+        return ResponseEntity.ok().build();
     }
 
 }
