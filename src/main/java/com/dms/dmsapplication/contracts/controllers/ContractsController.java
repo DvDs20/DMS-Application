@@ -2,11 +2,13 @@ package com.dms.dmsapplication.contracts.controllers;
 
 import com.dms.dmsapplication.contracts.models.Contract;
 import com.dms.dmsapplication.contracts.payload.request.NewContractCreationRequest;
+import com.dms.dmsapplication.contracts.payload.response.ResponseForContractInfo;
 import com.dms.dmsapplication.contracts.services.ContractsService;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.CrossOrigin;
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -38,6 +40,12 @@ public class ContractsController {
     public ResponseEntity<?> createNewContract(@RequestBody NewContractCreationRequest request) {
         contractsService.createNewContract(request.getStudentId(), request.getRoomId(), request.getExpireDate());
         return ResponseEntity.ok().build();
+    }
+
+    @GetMapping("/contracts/info/{id}")
+    @PreAuthorize("hasRole('ADMIN')")
+    public ResponseForContractInfo getContractInfo(@PathVariable(value = "id") long contractId) {
+        return contractsService.getContractInfo(contractId);
     }
 
 }
