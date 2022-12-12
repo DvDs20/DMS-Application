@@ -62,8 +62,15 @@ public class LookupController {
     @PreAuthorize("hasRole('ADMIN')")
     public List<ResponseForRoomsLookup> getAllFreeRooms() {
         Predicate<Room> ifRoomIsFree = room -> Objects.equals(room.getRoomStatus(), 1);
+        Predicate<Room> ifRoomIsPartiallyFree = room -> Objects.equals(room.getRoomStatus(), 2);
 
-        List<Room> fullList = roomRepository.findAll().stream().filter(ifRoomIsFree).toList();
+        List<Room> roomsWhichAreFullyFree =
+                roomRepository.findAll().stream().filter(ifRoomIsFree).toList();
+        List<Room> roomsWhichArePartiallyFree =
+                roomRepository.findAll().stream().filter(ifRoomIsPartiallyFree).toList();
+
+        List<Room> fullList =
+                Stream.concat(roomsWhichArePartiallyFree.stream(), roomsWhichAreFullyFree.stream()).toList();
 
         List<ResponseForRoomsLookup> roomsLookupList = new ArrayList<>();
         for (Room room : fullList) {

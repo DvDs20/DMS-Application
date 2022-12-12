@@ -10,4 +10,6 @@ import java.util.Optional;
 public interface UserRoomRepository extends JpaRepository<UserRooms, Long> {
 
     Optional<Long> findByUserId(Long userId);
+
+    void deleteByUserId(Long userId);
 }
