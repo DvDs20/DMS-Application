@@ -72,7 +72,7 @@ public class LookupController {
             responseForRoomsLookup.setRoomNumber(room.getRoomNumber());
             roomsLookupList.add(responseForRoomsLookup);
         }
-        
+
         return roomsLookupList;
     }
 

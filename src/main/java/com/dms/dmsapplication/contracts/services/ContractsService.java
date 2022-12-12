@@ -1,6 +1,7 @@
 package com.dms.dmsapplication.contracts.services;
 
 import com.dms.dmsapplication.contracts.models.Contract;
+import com.dms.dmsapplication.contracts.payload.response.ResponseForContractInfo;
 import com.dms.dmsapplication.contracts.repository.ContractsRepository;
 import com.dms.dmsapplication.exception.ResourceNotFoundException;
 import com.dms.dmsapplication.models.User;
@@ -15,6 +16,7 @@ import java.sql.Date;
 import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
 import java.util.List;
+import java.util.Optional;
 
 @Service
 public class ContractsService {
@@ -70,9 +72,33 @@ public class ContractsService {
 
         //changing room status after adding contract
         Room room = roomRepository.findById(roomId)
-                .orElseThrow(() -> new ResourceNotFoundException("Room not found with " + roomId));
+                .orElseThrow(() -> new ResourceNotFoundException("Room not found with id: " + roomId));
         room.setRoomStatus(ROOM_STATUS_AFTER_ADDING_CONTRACT);
         roomRepository.save(room);
+    }
+
+    public ResponseForContractInfo getContractInfo(Long contractId) {
+        Contract contract;
+        contract = contractsRepository.findById(contractId)
+                .orElseThrow(() -> new ResourceNotFoundException("Contract not found with id: " + contractId));
+        User user;
+        Contract finalContract = contract;
+        user = userRepository.findById(contract.getStudentId())
+                             .orElseThrow(() -> new ResourceNotFoundException("Student not found with id: " + finalContract.getStudentId()));
+        Room room;
+        Contract finalContract1 = contract;
+        room = roomRepository.findById(contract.getRoomId())
+                             .orElseThrow(() -> new ResourceNotFoundException("Room not found with id: " + finalContract1.getRoomId()));
+
+        ResponseForContractInfo responseForContractInfo = new ResponseForContractInfo();
+        responseForContractInfo.setId(contract.getId());
+        responseForContractInfo.setFirstName(user.getFirstName());
+        responseForContractInfo.setLastName(user.getLastName());
+        responseForContractInfo.setRoomNumber(room.getRoomNumber());
+        responseForContractInfo.setExpireDate(contract.getExpireDate());
+        responseForContractInfo.setContractNumber(contract.getContractNumber());
+
+        return responseForContractInfo;
     }
 
     public String getCurrentDate() {
