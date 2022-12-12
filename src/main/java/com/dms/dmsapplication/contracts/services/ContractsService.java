@@ -6,6 +6,7 @@ import com.dms.dmsapplication.contracts.repository.ContractsRepository;
 import com.dms.dmsapplication.exception.ResourceNotFoundException;
 import com.dms.dmsapplication.models.User;
 import com.dms.dmsapplication.repository.UserRepository;
+import com.dms.dmsapplication.repository.UserRoomRepository;
 import com.dms.dmsapplication.rooms.models.Room;
 import com.dms.dmsapplication.rooms.repository.RoomRepository;
 import com.dms.dmsapplication.security.services.UserDetailsServiceImpl;
@@ -16,14 +17,18 @@ import java.sql.Date;
 import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
 import java.util.List;
+import java.util.Objects;
+import java.util.Optional;
+import javax.transaction.Transactional;
 
 @Service
 public class ContractsService {
 
     private final static Integer DEFAULT_CONTRACT_STATUS = 0;
     private final static Integer USER_STATUS_AFTER_ADDING_CONTRACT = 3;
+    private final static Integer USER_STATUS_AFTER_DELETING_CONTRACT = 2;
     private final static Integer ROOM_STATUS_AFTER_THERE_ARE_NO_SPACE = 0;
-
+    private final static Integer ROOM_STATUS_AFTER_THERE_ARE_FULL_SPACE = 1;
     private final static Integer ROOM_STATUS_AFTER_THERE_ARE_SPACE = 2;
     private final static String PREFIX_OF_CONTRACT_NUMBER = "SUT-";
 
@@ -38,13 +43,17 @@ public class ContractsService {
 
     private final RoomRepository roomRepository;
 
+    private final UserRoomRepository userRoomRepository;
+
     public ContractsService(ContractsRepository contractsRepository, UserRoomsService userRoomsService,
-            UserDetailsServiceImpl userDetailsService, UserRepository userRepository, RoomRepository roomRepository) {
+            UserDetailsServiceImpl userDetailsService, UserRepository userRepository, RoomRepository roomRepository,
+            UserRoomRepository userRoomRepository) {
         this.contractsRepository = contractsRepository;
         this.userRoomsService = userRoomsService;
         this.userDetailsService = userDetailsService;
         this.userRepository = userRepository;
         this.roomRepository = roomRepository;
+        this.userRoomRepository = userRoomRepository;
     }
 
     public List<Contract> getAllContracts() {
@@ -88,6 +97,43 @@ public class ContractsService {
         roomRepository.save(room);
     }
 
+
+    @Transactional
+    public void deleteContract(Long contractId) {
+        Contract contract = new Contract();
+        contract = contractsRepository.findById(contractId)
+                                      .orElseThrow(() -> new ResourceNotFoundException("Contract not found with id: " + contractId));
+        Long studentId = contract.getStudentId();
+        Long roomId = contract.getRoomId();
+
+        contractsRepository.delete(contract);
+
+
+        //changing user status after deleting contract
+        User user;
+        if (userRepository.findById(studentId).isPresent()) {
+            user = userDetailsService.getUserDetailsByUserId(studentId);
+            user.setUserStatus(USER_STATUS_AFTER_DELETING_CONTRACT);
+            userRepository.save(user);
+        }
+
+        //changing room status and room left space after deleting contract
+        Room room = roomRepository.findById(roomId)
+                .orElseThrow(() -> new ResourceNotFoundException("Room not found with id: " + roomId));
+        room.setLeftRoomCapacity(room.getLeftRoomCapacity()+1);
+        if (Objects.equals(room.getRoomCapacity(), room.getLeftRoomCapacity())) {
+            room.setRoomStatus(ROOM_STATUS_AFTER_THERE_ARE_FULL_SPACE);
+        }
+        else {
+            room.setRoomStatus(ROOM_STATUS_AFTER_THERE_ARE_SPACE);
+        }
+
+        //removing info related with studentId from userRoom entity
+        if (userRoomRepository.findByUserId(studentId).isPresent()) {
+            userRoomRepository.deleteByUserId(studentId);
+        }
+    }
+
     public ResponseForContractInfo getContractInfo(Long contractId) {
         Contract contract;
         contract = contractsRepository.findById(contractId)
@@ -111,8 +157,6 @@ public class ContractsService {
 
         return responseForContractInfo;
     }
-
-//    public deleteContract()
 
     public String getCurrentDate() {
         LocalDate localDate = LocalDate.now();
