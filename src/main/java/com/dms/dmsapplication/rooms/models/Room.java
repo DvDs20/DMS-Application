@@ -33,12 +33,16 @@ public class Room {
     @Column(name = "room_capacity")
     private Integer roomCapacity;
 
+    @Column(name = "left_room_capacity")
+    private Integer leftRoomCapacity;
 
-    public Room(Integer roomStatus, String roomNumber, Integer floor, Integer roomCapacity) {
+
+    public Room(Integer roomStatus, String roomNumber, Integer floor, Integer roomCapacity, Integer leftRoomCapacity) {
         this.roomStatus = roomStatus;
         this.roomNumber = roomNumber;
         this.floor = floor;
         this.roomCapacity = roomCapacity;
+        this.leftRoomCapacity = leftRoomCapacity;
     }
 
     public Room() {
@@ -83,6 +87,14 @@ public class Room {
 
     public void setRoomCapacity(Integer roomCapacity) {
         this.roomCapacity = roomCapacity;
+    }
+
+    public Integer getLeftRoomCapacity() {
+        return leftRoomCapacity;
+    }
+
+    public void setLeftRoomCapacity(Integer leftRoomCapacity) {
+        this.leftRoomCapacity = leftRoomCapacity;
     }
 
 }

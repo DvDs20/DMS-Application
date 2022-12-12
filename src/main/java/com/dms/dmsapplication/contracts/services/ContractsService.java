@@ -16,15 +16,17 @@ import java.sql.Date;
 import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
 import java.util.List;
-import java.util.Optional;
 
 @Service
 public class ContractsService {
 
     private final static Integer DEFAULT_CONTRACT_STATUS = 0;
     private final static Integer USER_STATUS_AFTER_ADDING_CONTRACT = 3;
-    private final static Integer ROOM_STATUS_AFTER_ADDING_CONTRACT = 0;
+    private final static Integer ROOM_STATUS_AFTER_THERE_ARE_NO_SPACE = 0;
+
+    private final static Integer ROOM_STATUS_AFTER_THERE_ARE_SPACE = 2;
     private final static String PREFIX_OF_CONTRACT_NUMBER = "SUT-";
+
 
     private final ContractsRepository contractsRepository;
 
@@ -70,10 +72,19 @@ public class ContractsService {
         user.setUserStatus(USER_STATUS_AFTER_ADDING_CONTRACT);
         userRepository.save(user);
 
-        //changing room status after adding contract
+        //changing room status and room left space after adding contract
         Room room = roomRepository.findById(roomId)
                 .orElseThrow(() -> new ResourceNotFoundException("Room not found with id: " + roomId));
-        room.setRoomStatus(ROOM_STATUS_AFTER_ADDING_CONTRACT);
+        if (room.getLeftRoomCapacity() != 0)
+        {
+            room.setLeftRoomCapacity(room.getLeftRoomCapacity()-1);
+            if (room.getLeftRoomCapacity() == 0) {
+                room.setRoomStatus(ROOM_STATUS_AFTER_THERE_ARE_NO_SPACE);
+            }
+            else {
+                room.setRoomStatus(ROOM_STATUS_AFTER_THERE_ARE_SPACE);
+            }
+        }
         roomRepository.save(room);
     }
 
@@ -100,6 +111,8 @@ public class ContractsService {
 
         return responseForContractInfo;
     }
+
+//    public deleteContract()
 
     public String getCurrentDate() {
         LocalDate localDate = LocalDate.now();
