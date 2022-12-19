@@ -14,6 +14,7 @@ import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
@@ -67,5 +68,12 @@ public class ContractsController {
     public ResponseEntity<?> getContractInfoForStudent(@PathVariable(value = "id") long studentId)
             throws ResourceNotFoundException {
         return ResponseEntity.ok(contractsService.getContractInfoForStudent(studentId));
+    }
+
+    @PutMapping("/contracts/student-contract/{id}")
+    @PreAuthorize("hasRole('STUDENT')")
+    public ResponseEntity<?> assignContract(@PathVariable(value = "id") long studentId) throws ResourceNotFoundException {
+        contractsService.changeContractStatusAfterAssign(studentId);
+        return ResponseEntity.ok().build();
     }
 }
