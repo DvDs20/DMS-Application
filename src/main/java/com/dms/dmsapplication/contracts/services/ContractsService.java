@@ -193,6 +193,20 @@ public class ContractsService {
         return response;
     }
 
+    public void changeContractStatusAfterAssign(Long studentId) {
+        Contract contract;
+        contract = contractsRepository.findByStudentId(studentId)
+                .orElseThrow(() -> new ResourceNotFoundException("Contract not found with student id: " + studentId));
+        User user = new User();
+        User finalUser = user;
+        user = userRepository.findById(studentId)
+                                     .orElseThrow(() -> new ResourceNotFoundException("Student not found with id: " + finalUser.getId()));
+        user.setUserStatus(1);
+        contract.setStatus(1);
+        contractsRepository.save(contract);
+        userRepository.save(user);
+    }
+
     public String getCurrentDate() {
         LocalDate localDate = LocalDate.now();
         DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd");
