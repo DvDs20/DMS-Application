@@ -3,6 +3,8 @@ package com.dms.dmsapplication.contracts.controllers;
 import com.dms.dmsapplication.contracts.models.Contract;
 import com.dms.dmsapplication.contracts.payload.request.NewContractCreationRequest;
 import com.dms.dmsapplication.contracts.payload.response.ResponseForContractInfo;
+import com.dms.dmsapplication.contracts.payload.response.ResponseForContractInfoForUser;
+import com.dms.dmsapplication.contracts.repository.ContractsRepository;
 import com.dms.dmsapplication.contracts.services.ContractsService;
 import com.dms.dmsapplication.exception.ResourceNotFoundException;
 import org.springframework.http.ResponseEntity;
@@ -16,9 +18,7 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
-import java.sql.Date;
 import java.util.List;
-import javax.validation.Valid;
 
 @CrossOrigin(origins = "*", maxAge = 3600)
 @RestController
@@ -27,8 +27,11 @@ public class ContractsController {
 
     private final ContractsService contractsService;
 
-    public ContractsController(ContractsService contractsService) {
+    private final ContractsRepository contractsRepository;
+
+    public ContractsController(ContractsService contractsService, ContractsRepository contractsRepository) {
         this.contractsService = contractsService;
+        this.contractsRepository = contractsRepository;
     }
 
     @GetMapping("/contracts")
@@ -40,7 +43,8 @@ public class ContractsController {
     @PostMapping("/contracts")
     @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<?> createNewContract(@RequestBody NewContractCreationRequest request) {
-        contractsService.createNewContract(request.getStudentId(), request.getRoomId(), request.getExpireDate());
+        contractsService.createNewContract(request.getStudentId(), request.getRoomId(), request.getExpireDate(),
+                request.getPriceForStudent());
         return ResponseEntity.ok().build();
     }
 
@@ -58,4 +62,10 @@ public class ContractsController {
         return ResponseEntity.ok().build();
     }
 
+    @GetMapping("/contracts/student-contract/{id}")
+    @PreAuthorize("hasRole('STUDENT')")
+    public ResponseEntity<?> getContractInfoForStudent(@PathVariable(value = "id") long studentId)
+            throws ResourceNotFoundException {
+        return ResponseEntity.ok(contractsService.getContractInfoForStudent(studentId));
+    }
 }

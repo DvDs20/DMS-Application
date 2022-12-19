@@ -46,12 +46,16 @@ public class Contract {
     @Column(nullable = false)
     private Integer status;
 
-    public Contract(Long studentId, Long roomId, String contractNumber, Date expireDate, Integer status) {
+    @Column(name = "price_for_student", nullable = false)
+    private String priceForStudent;
+
+    public Contract(Long studentId, Long roomId, String contractNumber, Date expireDate, Integer status, String priceForStudent) {
         this.studentId = studentId;
         this.roomId = roomId;
         this.contractNumber = contractNumber;
         this.expireDate = expireDate;
         this.status = status;
+        this.priceForStudent = priceForStudent;
     }
 
     public Contract() {
@@ -104,6 +108,14 @@ public class Contract {
 
     public void setStatus(Integer status) {
         this.status = status;
+    }
+
+    public String getPriceForStudent() {
+        return priceForStudent;
+    }
+
+    public void setPriceForStudent(String priceForStudent) {
+        this.priceForStudent = priceForStudent;
     }
 
 }

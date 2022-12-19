@@ -14,6 +14,9 @@ public class NewContractCreationRequest {
     @NotBlank
     private Date expireDate;
 
+    @NotBlank
+    private String priceForStudent;
+
     public Long getStudentId() {
         return studentId;
     }
@@ -36,6 +39,14 @@ public class NewContractCreationRequest {
 
     public void setExpireDate(Date expireDate) {
         this.expireDate = expireDate;
+    }
+
+    public String getPriceForStudent() {
+        return priceForStudent;
+    }
+
+    public void setPriceForStudent(String priceForStudent) {
+        this.priceForStudent = priceForStudent;
     }
 
 }

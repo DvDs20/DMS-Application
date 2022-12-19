@@ -2,6 +2,8 @@ package com.dms.dmsapplication.contracts.services;
 
 import com.dms.dmsapplication.contracts.models.Contract;
 import com.dms.dmsapplication.contracts.payload.response.ResponseForContractInfo;
+import com.dms.dmsapplication.contracts.payload.response.ResponseForContractInfoForUser;
+import com.dms.dmsapplication.contracts.payload.response.ResponseForUserWithoutContract;
 import com.dms.dmsapplication.contracts.repository.ContractsRepository;
 import com.dms.dmsapplication.exception.ResourceNotFoundException;
 import com.dms.dmsapplication.models.User;
@@ -18,7 +20,6 @@ import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
 import java.util.List;
 import java.util.Objects;
-import java.util.Optional;
 import javax.transaction.Transactional;
 
 @Service
@@ -31,7 +32,6 @@ public class ContractsService {
     private final static Integer ROOM_STATUS_AFTER_THERE_ARE_FULL_SPACE = 1;
     private final static Integer ROOM_STATUS_AFTER_THERE_ARE_SPACE = 2;
     private final static String PREFIX_OF_CONTRACT_NUMBER = "SUT-";
-
 
     private final ContractsRepository contractsRepository;
 
@@ -60,7 +60,7 @@ public class ContractsService {
         return contractsRepository.findAll();
     }
 
-    public void createNewContract(Long studentId, Long roomId, Date expireDate) {
+    public void createNewContract(Long studentId, Long roomId, Date expireDate, String priceForStudent) {
         String modifiedDate = getCurrentDate().replace("-", "");
         String contractNumber = PREFIX_OF_CONTRACT_NUMBER + modifiedDate + getGeneratedSuffixOfContractNumber();
         Contract contract = new Contract();
@@ -71,6 +71,7 @@ public class ContractsService {
         contract.setContractNumber(contractNumber);
         contract.setExpireDate(expireDate);
         contract.setStatus(DEFAULT_CONTRACT_STATUS);
+        contract.setPriceForStudent(priceForStudent);
         contractsRepository.save(contract);
 
         //adding userId and roomId to UserRoom entity
@@ -83,31 +84,29 @@ public class ContractsService {
 
         //changing room status and room left space after adding contract
         Room room = roomRepository.findById(roomId)
-                .orElseThrow(() -> new ResourceNotFoundException("Room not found with id: " + roomId));
-        if (room.getLeftRoomCapacity() != 0)
-        {
-            room.setLeftRoomCapacity(room.getLeftRoomCapacity()-1);
+                                  .orElseThrow(
+                                          () -> new ResourceNotFoundException("Room not found with id: " + roomId));
+        if (room.getLeftRoomCapacity() != 0) {
+            room.setLeftRoomCapacity(room.getLeftRoomCapacity() - 1);
             if (room.getLeftRoomCapacity() == 0) {
                 room.setRoomStatus(ROOM_STATUS_AFTER_THERE_ARE_NO_SPACE);
-            }
-            else {
+            } else {
                 room.setRoomStatus(ROOM_STATUS_AFTER_THERE_ARE_SPACE);
             }
         }
         roomRepository.save(room);
     }
 
-
     @Transactional
     public void deleteContract(Long contractId) {
         Contract contract = new Contract();
         contract = contractsRepository.findById(contractId)
-                                      .orElseThrow(() -> new ResourceNotFoundException("Contract not found with id: " + contractId));
+                                      .orElseThrow(() -> new ResourceNotFoundException(
+                                              "Contract not found with id: " + contractId));
         Long studentId = contract.getStudentId();
         Long roomId = contract.getRoomId();
 
         contractsRepository.delete(contract);
-
 
         //changing user status after deleting contract
         User user;
@@ -119,12 +118,12 @@ public class ContractsService {
 
         //changing room status and room left space after deleting contract
         Room room = roomRepository.findById(roomId)
-                .orElseThrow(() -> new ResourceNotFoundException("Room not found with id: " + roomId));
-        room.setLeftRoomCapacity(room.getLeftRoomCapacity()+1);
+                                  .orElseThrow(
+                                          () -> new ResourceNotFoundException("Room not found with id: " + roomId));
+        room.setLeftRoomCapacity(room.getLeftRoomCapacity() + 1);
         if (Objects.equals(room.getRoomCapacity(), room.getLeftRoomCapacity())) {
             room.setRoomStatus(ROOM_STATUS_AFTER_THERE_ARE_FULL_SPACE);
-        }
-        else {
+        } else {
             room.setRoomStatus(ROOM_STATUS_AFTER_THERE_ARE_SPACE);
         }
 
@@ -137,15 +136,18 @@ public class ContractsService {
     public ResponseForContractInfo getContractInfo(Long contractId) {
         Contract contract;
         contract = contractsRepository.findById(contractId)
-                .orElseThrow(() -> new ResourceNotFoundException("Contract not found with id: " + contractId));
+                                      .orElseThrow(() -> new ResourceNotFoundException(
+                                              "Contract not found with id: " + contractId));
         User user;
         Contract finalContract = contract;
         user = userRepository.findById(contract.getStudentId())
-                             .orElseThrow(() -> new ResourceNotFoundException("Student not found with id: " + finalContract.getStudentId()));
+                             .orElseThrow(() -> new ResourceNotFoundException(
+                                     "Student not found with id: " + finalContract.getStudentId()));
         Room room;
         Contract finalContract1 = contract;
         room = roomRepository.findById(contract.getRoomId())
-                             .orElseThrow(() -> new ResourceNotFoundException("Room not found with id: " + finalContract1.getRoomId()));
+                             .orElseThrow(() -> new ResourceNotFoundException(
+                                     "Room not found with id: " + finalContract1.getRoomId()));
 
         ResponseForContractInfo responseForContractInfo = new ResponseForContractInfo();
         responseForContractInfo.setId(contract.getId());
@@ -158,6 +160,39 @@ public class ContractsService {
         return responseForContractInfo;
     }
 
+    public ResponseForContractInfoForUser getContractInfoForStudent(Long studentId) {
+        Contract contract;
+        contract = contractsRepository.findByStudentId(studentId)
+                                      .orElseThrow(() -> new ResourceNotFoundException(
+                                              "Contract not found with student id: " + studentId));
+        Room room;
+        room = roomRepository.findById(contract.getRoomId())
+                             .orElseThrow(() -> new ResourceNotFoundException(
+                                     "Room not found with id: " + contract.getRoomId()));
+
+        User user = new User();
+        User finalUser = user;
+        user = userRepository.findById(studentId)
+                             .orElseThrow(() -> new ResourceNotFoundException("Student not found with id: " + finalUser.getId()));
+
+        ResponseForContractInfoForUser response = new ResponseForContractInfoForUser();
+        response.setId(contract.getId());
+        response.setContractStatus(contract.getStatus());
+        response.setContractNumber(contract.getContractNumber());
+        response.setExpireDate(contract.getExpireDate());
+        response.setRoomNumber(room.getRoomNumber());
+        response.setPriceForStudent(contract.getPriceForStudent());
+        response.setUserStatus(user.getUserStatus());
+        return response;
+    }
+
+    public ResponseForUserWithoutContract getEmptyResponseForContractInfo() {
+        ResponseForUserWithoutContract response = new ResponseForUserWithoutContract();
+        response.setMessage("Student do not have contract");
+
+        return response;
+    }
+
     public String getCurrentDate() {
         LocalDate localDate = LocalDate.now();
         DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd");
@@ -165,7 +200,7 @@ public class ContractsService {
     }
 
     public String getGeneratedSuffixOfContractNumber() {
-        return String.valueOf((int) (Math.random()*(999-100+1)+100));
+        return String.valueOf((int) (Math.random() * (999 - 100 + 1) + 100));
     }
 
 }
