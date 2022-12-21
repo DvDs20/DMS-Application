@@ -2,7 +2,10 @@ package com.dms.dmsapplication.lookups.controllers;
 
 import com.dms.dmsapplication.lookups.payload.response.ResponseForRoomsLookup;
 import com.dms.dmsapplication.lookups.payload.response.ResponseForStudentsLookup;
+import com.dms.dmsapplication.lookups.payload.response.ResponseForStudentsWhichDoNotHaveParcelMessageLookup;
 import com.dms.dmsapplication.models.User;
+import com.dms.dmsapplication.parcels.model.Parcel;
+import com.dms.dmsapplication.parcels.repository.ParcelRepository;
 import com.dms.dmsapplication.rooms.models.Room;
 import com.dms.dmsapplication.rooms.repository.RoomRepository;
 import com.dms.dmsapplication.security.services.UserDetailsServiceImpl;
@@ -16,6 +19,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
 import java.util.function.Predicate;
+import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 @CrossOrigin(origins = "*", maxAge = 3600)
@@ -27,10 +31,14 @@ public class LookupController {
 
     private final RoomRepository roomRepository;
 
-    public LookupController(UserDetailsServiceImpl userDetailsService1, RoomRepository roomRepository) {
+    private final ParcelRepository parcelRepository;
+
+    public LookupController(UserDetailsServiceImpl userDetailsService1, RoomRepository roomRepository,
+            ParcelRepository parcelRepository) {
 
         this.userDetailsService = userDetailsService1;
         this.roomRepository = roomRepository;
+        this.parcelRepository = parcelRepository;
     }
 
     @GetMapping("/students-without-expired-contracts")
@@ -81,6 +89,39 @@ public class LookupController {
         }
 
         return roomsLookupList;
+    }
+
+    @GetMapping("/students-which-do-not-have-parcel-message")
+    @PreAuthorize("hasRole('ADMIN')")
+    public List<ResponseForStudentsWhichDoNotHaveParcelMessageLookup> getAllStudentsWhichDoNotHaveParcelMessage() {
+        List<User> allStudentsList = userDetailsService.getAllStudents();
+
+        List<Parcel> parcelList = parcelRepository.findAll();
+
+
+        List<Long> studentsIdWhichHaveParcelMessage = new ArrayList<>();
+
+        for (Parcel parcel : parcelList) {
+            Long studentId = parcel.getStudentId();
+            studentsIdWhichHaveParcelMessage.add(studentId);
+        }
+
+        List<User> students = allStudentsList.stream()
+                                             .filter(student -> !studentsIdWhichHaveParcelMessage.contains(
+                                                     student.getId())).toList();
+
+        List<ResponseForStudentsWhichDoNotHaveParcelMessageLookup> lookupList = new ArrayList<>();
+
+        for (User user : students) {
+            ResponseForStudentsWhichDoNotHaveParcelMessageLookup response =
+                    new ResponseForStudentsWhichDoNotHaveParcelMessageLookup();
+            response.setStudentId(user.getId());
+            response.setLastName(user.getLastName());
+            response.setFirstName(user.getFirstName());
+            lookupList.add(response);
+        }
+
+        return lookupList;
     }
 
 }
