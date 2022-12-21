@@ -73,6 +73,12 @@ public class ParcelService {
         parcelRepository.save(parcel);
     }
 
+    public void deleteParcelMessage(Long parcelId) {
+        parcelRepository.findById(parcelId)
+                                .orElseThrow(() -> new ResourceNotFoundException("Parcel not found with id: " + parcelId));
+        parcelRepository.deleteById(parcelId);
+    }
+
     public String getCurrentDate() {
         LocalDate localDate = LocalDate.now();
         DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd");

@@ -1,5 +1,6 @@
 package com.dms.dmsapplication.parcels.controler;
 
+import com.dms.dmsapplication.exception.ResourceNotFoundException;
 import com.dms.dmsapplication.parcels.model.Parcel;
 import com.dms.dmsapplication.parcels.payload.request.NewParcelMessageCreationRequest;
 import com.dms.dmsapplication.parcels.payload.response.ParcelInfo;
@@ -7,7 +8,9 @@ import com.dms.dmsapplication.parcels.service.ParcelService;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.CrossOrigin;
+import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -36,6 +39,14 @@ public class ParcelController {
     @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<?> createNewParcelMessage(@RequestBody NewParcelMessageCreationRequest request) {
         parcelService.createNewParcelMessage(request.getStudentId(), request.getMessage(), request.getMessageTitle());
+        return ResponseEntity.ok().build();
+    }
+
+    @DeleteMapping("/parcels/{id}")
+    @PreAuthorize("hasRole('ADMIN')")
+    public ResponseEntity<?> deleteParcelMessage(@PathVariable(value = "id") long parcelId) throws
+            ResourceNotFoundException {
+        parcelService.deleteParcelMessage(parcelId);
         return ResponseEntity.ok().build();
     }
 
