@@ -2,14 +2,17 @@ package com.dms.dmsapplication.controllers;
 
 import java.util.HashSet;
 import java.util.List;
+import java.util.Objects;
 import java.util.Set;
 import java.util.stream.Collectors;
 
 import javax.validation.Valid;
 
+import com.dms.dmsapplication.exception.ResourceNotFoundException;
 import com.dms.dmsapplication.models.ERole;
 import com.dms.dmsapplication.models.Role;
 import com.dms.dmsapplication.models.User;
+import com.dms.dmsapplication.payload.request.ChangePasswordRequest;
 import com.dms.dmsapplication.payload.request.LoginRequest;
 import com.dms.dmsapplication.payload.request.SignupRequest;
 import com.dms.dmsapplication.payload.response.JwtResponse;
@@ -18,8 +21,10 @@ import com.dms.dmsapplication.repository.RoleRepository;
 import com.dms.dmsapplication.repository.UserRepository;
 import com.dms.dmsapplication.security.jwt.JwtUtils;
 import com.dms.dmsapplication.security.services.UserDetailsImpl;
+import org.apache.logging.log4j.message.Message;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
@@ -27,7 +32,9 @@ import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.web.bind.annotation.CrossOrigin;
+import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
@@ -73,6 +80,7 @@ public class AuthController {
                 userDetails.getFirstName(),
                 userDetails.getLastName(),
                 userDetails.getNumber(),
+                userDetails.getAcademicGroup(),
                 roles));
     }
 
@@ -135,5 +143,29 @@ public class AuthController {
         userRepository.save(user);
 
         return ResponseEntity.ok(new MessageResponse("User registered successfully!"));
+    }
+
+    @PutMapping("/change-password")
+    @PreAuthorize("hasRole('ADMIN') or hasRole('STUDENT')")
+    public ResponseEntity<?> changePassword(@RequestBody ChangePasswordRequest request) {
+        User user = userRepository.findById(request.getId())
+                .orElseThrow(() -> new ResourceNotFoundException("User not found with this id: " + request.getId()));
+        if (!encoder.matches(request.getPassword(), user.getPassword())) {
+            return ResponseEntity
+                    .badRequest()
+                    .body("Įvestas neteisingas senas slaptažodis");
+        }
+        if (!Objects.equals(request.getNewPassword(), request.getNewRepeatedPassword())) {
+            return ResponseEntity
+                    .badRequest()
+                    .body("Įvesti nauji slaptažodžiai nesutampa!");
+        }
+
+        user.setPassword(encoder.encode(request.getNewPassword()));
+
+
+        userRepository.save(user);
+
+        return ResponseEntity.ok().build();
     }
 }

@@ -14,10 +14,12 @@ public class JwtResponse {
     private String lastName;
 
     private String number;
+
+    private String academicGroup;
     private List<String> roles;
 
     public JwtResponse(String accessToken, Long id, String username, String email, String firstName, String lastName,
-            String number, List<String> roles) {
+            String number, String academicGroup, List<String> roles) {
         this.token = accessToken;
         this.id = id;
         this.username = username;
@@ -25,6 +27,7 @@ public class JwtResponse {
         this.firstName = firstName;
         this.lastName = lastName;
         this.number = number;
+        this.academicGroup = academicGroup;
         this.roles = roles;
     }
 
@@ -90,6 +93,14 @@ public class JwtResponse {
 
     public void setNumber(String number) {
         this.number = number;
+    }
+
+    public String getAcademicGroup() {
+        return academicGroup;
+    }
+
+    public void setAcademicGroup(String academicGroup) {
+        this.academicGroup = academicGroup;
     }
 
     public List<String> getRoles() {
