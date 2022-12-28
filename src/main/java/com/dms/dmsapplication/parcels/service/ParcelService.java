@@ -4,6 +4,7 @@ import com.dms.dmsapplication.exception.ResourceNotFoundException;
 import com.dms.dmsapplication.models.User;
 import com.dms.dmsapplication.parcels.model.Parcel;
 import com.dms.dmsapplication.parcels.payload.response.ParcelInfo;
+import com.dms.dmsapplication.parcels.payload.response.ParcelInfoForStudent;
 import com.dms.dmsapplication.parcels.repository.ParcelRepository;
 import com.dms.dmsapplication.repository.UserRepository;
 import org.springframework.stereotype.Service;
@@ -77,6 +78,30 @@ public class ParcelService {
         parcelRepository.findById(parcelId)
                                 .orElseThrow(() -> new ResourceNotFoundException("Parcel not found with id: " + parcelId));
         parcelRepository.deleteById(parcelId);
+    }
+
+    public ParcelInfoForStudent getParcelMessageByStudentId(Long studentId) {
+        Parcel parcel;
+        parcel = parcelRepository.findByStudentId(studentId).
+                orElseThrow(() -> new ResourceNotFoundException("Parcel not found with studentId:" + studentId));
+
+        ParcelInfoForStudent response = new ParcelInfoForStudent();
+
+            response.setId(parcel.getId());
+            response.setMessageTitle(parcel.getMessageTitle());
+            response.setMessage(parcel.getMessage());
+            response.setMessageTime(parcel.getMessageTime());
+            response.setViewStatus(parcel.getViewStatus());
+
+        return response;
+    }
+
+    public void changeParcelMessageViewStatusByStudentId(Long studentId) {
+        Parcel parcel;
+        parcel = parcelRepository.findByStudentId(studentId).
+                                 orElseThrow(() -> new ResourceNotFoundException("Parcel not found with studentId:" + studentId));
+        parcel.setViewStatus(0);
+        parcelRepository.save(parcel);
     }
 
     public String getCurrentDate() {
