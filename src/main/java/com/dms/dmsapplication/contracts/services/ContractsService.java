@@ -127,10 +127,10 @@ public class ContractsService {
             room.setRoomStatus(ROOM_STATUS_AFTER_THERE_ARE_SPACE);
         }
 
-        //removing info related with studentId from userRoom entity
-        if (userRoomRepository.findByUserId(studentId).isPresent()) {
-            userRoomRepository.deleteByUserId(studentId);
-        }
+//        //removing info related with studentId from userRoom entity
+//        if (userRoomRepository.findByUserId(studentId).isPresent()) {
+//            userRoomRepository.deleteByUserId(studentId);
+//        }
     }
 
     public ResponseForContractInfo getContractInfo(Long contractId) {
