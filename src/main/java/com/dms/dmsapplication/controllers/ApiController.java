@@ -7,6 +7,7 @@ import com.dms.dmsapplication.repository.UserRoomRepository;
 import com.dms.dmsapplication.security.services.UserDetailsImpl;
 import com.dms.dmsapplication.security.services.UserDetailsServiceImpl;
 import com.dms.dmsapplication.service.UserRoomsService;
+import com.dms.dmsapplication.service.UserService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
@@ -39,13 +40,16 @@ public class ApiController {
 
     private final UserRepository userRepository;
 
+    private final UserService userService;
+
     public ApiController(UserRoomsService userRoomsService, UserRoomRepository userRoomRepository,
             UserDetailsServiceImpl userDetailsService,
-            UserRepository userRepository) {
+            UserRepository userRepository, UserService userService) {
         this.userRoomsService = userRoomsService;
         this.userRoomRepository = userRoomRepository;
         this.userDetailsService = userDetailsService;
         this.userRepository = userRepository;
+        this.userService = userService;
     }
 
     @GetMapping("/all")
@@ -120,8 +124,7 @@ public class ApiController {
             return ResponseEntity.badRequest().body("User can't be deleted because of userStatus");
         }
         else {
-            userRoomRepository.deleteByUserId(userId);
-            userRepository.deleteById(userId);
+            userService.deleteStudent(userId);
             return ResponseEntity.ok().build();
         }
     }
