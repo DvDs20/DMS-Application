@@ -21,6 +21,7 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 import java.util.List;
+import javax.transaction.Transactional;
 
 @CrossOrigin(origins = "*", maxAge = 3600)
 @RestController
@@ -109,17 +110,19 @@ public class ApiController {
 
     @DeleteMapping("students/{id}")
     @PreAuthorize("hasRole('ADMIN')")
+    @Transactional
     public ResponseEntity<?> deleteStudent(@PathVariable(value = "id") long userId) throws ResourceNotFoundException {
-        userRepository.findById(userId)
+        User user = userRepository.findById(userId)
                 .orElseThrow(() -> new ResourceNotFoundException("User not found with id: " + userId));
 
-        if (userRoomRepository.findByUserId(userId).isEmpty())
+        if (user.getUserStatus().equals(1) || user.getUserStatus().equals(3))
         {
-            userRepository.deleteById(userId);
-            return ResponseEntity.ok().build();
+            return ResponseEntity.badRequest().body("User can't be deleted because of userStatus");
         }
         else {
-            return ResponseEntity.badRequest().body("User can't be deleted because of userStatus");
+            userRoomRepository.deleteByUserId(userId);
+            userRepository.deleteById(userId);
+            return ResponseEntity.ok().build();
         }
     }
 }
