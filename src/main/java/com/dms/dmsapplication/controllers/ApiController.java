@@ -2,6 +2,7 @@ package com.dms.dmsapplication.controllers;
 
 import com.dms.dmsapplication.exception.ResourceNotFoundException;
 import com.dms.dmsapplication.models.User;
+import com.dms.dmsapplication.payload.response.StudentInfoResponse;
 import com.dms.dmsapplication.repository.UserRepository;
 import com.dms.dmsapplication.repository.UserRoomRepository;
 import com.dms.dmsapplication.security.services.UserDetailsImpl;
@@ -83,8 +84,8 @@ public class ApiController {
 
     @GetMapping("/students")
     @PreAuthorize("hasRole('ADMIN')")
-    public List<User> getAllStudents() {
-        return userDetailsService.getAllStudents();
+    public List<StudentInfoResponse> getAllStudents() {
+        return userDetailsService.getStudentsList();
     }
 
     @GetMapping("/students/{id}")
